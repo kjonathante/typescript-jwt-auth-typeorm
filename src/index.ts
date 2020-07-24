@@ -1,20 +1,29 @@
+import 'dotenv/config'
 import 'reflect-metadata'
+import express from 'express'
 import { createConnection } from 'typeorm'
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql'
-import { RegisterResolver } from './features/user/Register'
+import { UserResolver } from './features/user/UserResolver'
 
 const main = async () => {
   await createConnection()
   const schema = await buildSchema({
-    resolvers: [RegisterResolver],
+    resolvers: [UserResolver],
   })
 
-  const apolloServer = new ApolloServer({ schema })
+  const app = express()
 
-  const { url } = await apolloServer.listen()
+  const apolloServer = new ApolloServer({
+    schema,
+    context: ({ req, res }) => ({ req, res }),
+  })
 
-  console.log(url)
+  apolloServer.applyMiddleware({ app })
+
+  app.listen(4000, () => {
+    console.log(`Listening on http://localhost:4000/graphql`)
+  })
 }
 
 main()

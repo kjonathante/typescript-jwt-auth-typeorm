@@ -8,13 +8,13 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Field()
-  @Column()
-  firstName: string
+  // @Field()
+  // @Column()
+  // firstName: string
 
-  @Field()
-  @Column()
-  lastName: string
+  // @Field()
+  // @Column()
+  // lastName: string
 
   @Field()
   @Column('text', { unique: true })
@@ -22,4 +22,9 @@ export class User extends BaseEntity {
 
   @Column()
   password: string
+
+  // @Field()
+  // name(@Root() parent: User): string {
+  //   return `${parent.firstName} ${parent.lastName}`
+  // }
 }
