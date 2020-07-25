@@ -14,6 +14,7 @@ import { LoginResponse } from './login/LoginResponse'
 import { createAccessToken, createRefreshToken } from './auth'
 import { MyContext } from '../../types/MyContext'
 import { isAuth } from './isAuth'
+import { sendRefreshToken } from './sendRefreshToken'
 
 @Resolver()
 export class UserResolver {
@@ -27,16 +28,20 @@ export class UserResolver {
     return await User.find()
   }
 
-  @Mutation(() => User)
+  @Mutation(() => Boolean)
   async register(
     @Arg('data')
     { email, password }: RegisterInput
-  ): Promise<User> {
+  ): Promise<boolean> {
     const hashPassword = await hash(password, 12)
 
-    const user = await User.create({ email, password: hashPassword }).save()
+    try {
+      await User.insert({ email, password: hashPassword })
+    } catch (err) {
+      return false
+    }
 
-    return user
+    return true
   }
 
   @Mutation(() => LoginResponse)
@@ -51,13 +56,13 @@ export class UserResolver {
 
     const valid = await compare(password, user.password)
 
-    if (!valid) throw new Error('Wrong passowrd')
+    if (!valid) throw new Error('Wrong password')
 
-    const refreshToken = createRefreshToken(user)
-    res.cookie('cid', refreshToken, { httpOnly: true })
+    // const refreshToken = createRefreshToken(user)
+    // res.cookie('cid', refreshToken, { httpOnly: true })
+    sendRefreshToken(res, createRefreshToken(user))
 
-    const accessToken = createAccessToken(user)
-    return { accessToken }
+    return { accessToken: createAccessToken(user) }
   }
 
   @Query(() => String)
